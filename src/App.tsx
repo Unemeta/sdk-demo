@@ -11,6 +11,10 @@ import {
   generateMakerOrderTypedData,
 } from "@unemeta/sdk";
 
+// UneMeta Open Api Key
+// @see [https://unemetatest.readme.io/reference/getting-started-with-your-api]
+const API_KEY = "";
+
 function App() {
   // connect wallet
   const connect = async () => {
@@ -29,7 +33,12 @@ function App() {
 
     // Fetch from the api
     const nonceResp = await fetch(
-      `/api/transaction/v1/dev/transaction/getNonce?wallet_address=${signerAddress}`
+      `/api/transaction/v1/dev/transaction/getNonce?wallet_address=${signerAddress}`,
+      {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      }
     );
     const nonceJson = await nonceResp.json();
 
@@ -41,7 +50,7 @@ function App() {
       signer: signerAddress,
       collection: "", // collection contract address
       price: "1000000000000000", // Warning: PRICE IS ALWAYS IN WEI
-      tokenId: "0", // Token id is 0 if you use the STRATEGY_COLLECTION_SALE strategy
+      tokenId: "6", // Token id is 0 if you use the STRATEGY_COLLECTION_SALE strategy
       amount: 1, // Warning: amount is int
       strategy: addresses.STRATEGY_STANDARD_SALE,
       currency: addresses.WETH,
@@ -56,6 +65,7 @@ function App() {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
+        "x-api-key": API_KEY,
       },
       body: JSON.stringify({ order: { ...makerOrder, sign: signatureHash } }),
     });
@@ -73,7 +83,12 @@ function App() {
 
     // Fetch from the api
     const nonceResp = await fetch(
-      `/api/transaction/v1/dev/transaction/getNonce?wallet_address=${signerAddress}`
+      `/api/transaction/v1/dev/transaction/getNonce?wallet_address=${signerAddress}`,
+      {
+        headers: {
+          "x-api-key": API_KEY,
+        },
+      }
     );
     const nonceJson = await nonceResp.json();
 
@@ -108,6 +123,7 @@ function App() {
         method: "POST",
         headers: {
           "Content-Type": "application/json; charset=utf-8",
+          "x-api-key": API_KEY,
         },
         body: JSON.stringify({ order: { ...makerOrder, sign: signature } }),
       }
