@@ -73,7 +73,7 @@ function App() {
     console.log(rs);
   };
 
-  /** private key sign with list */
+  // private key sign with list
   const privateList = async () => {
     const chainId = SupportedChainId.GOERLI;
     const addresses = addressesByNetwork[chainId];
@@ -132,9 +132,10 @@ function App() {
     console.log(rs);
   };
 
-  /** take order */
+  // take order
   const takeOrder = async () => {
-    // You should get this data by our api
+    // You should get `makerOrderWithSignature` data from unemeta open api
+    // @see https://unemetatest.readme.io/reference/getting-started-with-your-api
     const makerOrderWithSignature = {
       isOrderAsk: true,
       signer: "0x5a279545Cb3fbE87E95A6db6494528d8F23b496f",
