@@ -40,6 +40,8 @@ console.log(ethPriceParseWei.toString()); // 输出：1500000000000000000
 const provider = new ethers.providers.JsonRpcProvider('https://ethereum-sepolia.blockpi.network/v1/rpc/b996731df2ff7902f1e992312561dfa62d656880');
 const walletWithProvider = wallet.connect(provider);
 
+
+
 const chainId = SupportedChainId.SEPOLIA;
 const addresses = addressesByNetwork[chainId];
 const domain = {
@@ -179,8 +181,8 @@ function App() {
       );
       console.log(res.data.data.item)
       let item = res.data.data.item
-      let list = item.filter((order:any)=>{
-        if(order.owner.toLocaleUpperCase()!==wallet.address.toLocaleUpperCase()&&order.is_sell){
+      let list = item.filter((order: any) => {
+        if (order.owner.toLocaleUpperCase() !== wallet.address.toLocaleUpperCase() && order.is_sell) {
           return true
         }
       })
@@ -373,9 +375,6 @@ function App() {
         [JWT_HEADER_KEY]: jwtHelper.getToken()
       }
     })
-    console.log(orderRes)
-    const makerOrderWithSignature = orderRes.data.data.order
-    debugger
     // const makerOrderWithSignature = {
     //   isOrderAsk: true,
     //   signer: "0x5a279545Cb3fbE87E95A6db6494528d8F23b496f",
@@ -392,53 +391,83 @@ function App() {
     //   params: [],
     //   sign: "0xbd74ff31c523301235f1f134ee304c69e271bd59b11b8ba548af372b6c5cbd7e43ab7ddfb51d5fcf7eb4436531d37514b1d5ad2cdf326408b09e077fc684722d1b",
     // };
-    const { encodedParams } = encodeOrderParams(makerOrderWithSignature.params);
-    const vrs = ethers.utils.splitSignature(makerOrderWithSignature.sign);
     // const ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
-
     // const signer = ethersProvider.getSigner();
     // const signerAddress = await signer.getAddress();
     // const addresses = addressesByNetwork[chainId];
 
-    const askWithoutHash: MakerOrderWithVRS = {
-      ...makerOrderWithSignature,
-      ...vrs,
-      params: encodedParams,
-    };
-    const order: TakerOrder = {
-      isOrderAsk: false,
-      taker: wallet.address,
-      price: ethers.BigNumber.from(makerOrderWithSignature.price),
-      tokenId: makerOrderWithSignature.tokenId,
-      minPercentageToAsk: makerOrderWithSignature.minPercentageToAsk,
-      params: encodedParams,
-    };
+
+    // debugger
+    // const makerOrderWithSignature = orderRes.data.data.order
+    // const { encodedParams } = encodeOrderParams(makerOrderWithSignature.params);
+    // const vrs = ethers.utils.splitSignature(makerOrderWithSignature.sign);
+    // const askWithoutHash: MakerOrderWithVRS = {
+    //   ...makerOrderWithSignature,
+    //   ...vrs,
+    //   params: encodedParams,
+    // };
+    // const order: TakerOrder = {
+    //   isOrderAsk: false,
+    //   taker: wallet.address,
+    //   price: ethers.BigNumber.from(makerOrderWithSignature.price),
+    //   tokenId: makerOrderWithSignature.tokenId,
+    //   minPercentageToAsk: makerOrderWithSignature.minPercentageToAsk,
+    //   params: encodedParams,
+    // };
+
+    // const contract = new ethers.Contract(
+    //   addresses.EXCHANGE,
+    //   UneMetaExchangeAbi,
+    //   provider
+    // );
+    // const tx = await contract.matchSellerOrdersWETH(order, askWithoutHash, {
+    //   value: order.price,
+    // });
+    // debugger
+    const { sign, ...orderRest } = orderRes.data.data.order;
+    const signedOrder = ethers.utils.splitSignature(sign);
+
     const contract = new ethers.Contract(
       addresses.EXCHANGE,
       UneMetaExchangeAbi,
       walletWithProvider
     );
-    debugger
-    const tx = await contract.matchSellerOrdersWETH(order, askWithoutHash, {
-      value: order.price,
-    });
-    // const wallet = new ethers.Wallet(privateKey);
-    // let res = await wallet.signTransaction(tx)
-    let res = await walletWithProvider.sendTransaction(tx)
+    const takerBidOrder: TakerOrder = {
+      isOrderAsk: false,
+      taker: wallet.address,
+      price: ethers.BigNumber.from(orderRest.price),
+      tokenId: orderRest.tokenId,
+      minPercentageToAsk: orderRest.minPercentageToAsk,
+      params: ethers.utils.defaultAbiCoder.encode([], []),
+    };
+    const makerAskOrder: MakerOrderWithVRS = {
+      ...orderRest,
+      isOrderAsk: true,
+      params: takerBidOrder.params,
+      r: signedOrder.r,
+      s: signedOrder.s,
+      v: signedOrder.v,
+    };
+    const tx =
+      await contract.matchSellerOrdersWETH(
+        takerBidOrder,
+        makerAskOrder,
+        {
+          value: takerBidOrder.price
+        },
+      );
+    let transaction = await walletWithProvider.sendTransaction(tx)
 
-    console.log(res, 'tx')
-    // const transaction = await wallet.sendTransaction(tx);
-    // console.log('Transaction Hash:', transaction.hash);
+    console.log('Transaction Hash:', transaction.hash);
 
-    // // 等待交易被挖矿确认
-    // const receipt = await transaction.wait();
-    // console.log('Transaction was mined in block:', receipt.blockNumber);
-    // // const receipt = await tx.wait();
-    // console.log(receipt);
+    //等待交易被挖矿确认
+    const receipt = await transaction.wait();
+    console.log('Transaction was mined in block:', receipt.blockNumber);
   };
 
   const sleep = (time: number) =>
     new Promise((resolve) => setTimeout(resolve, time));
+
   const batchList = async () => {
     let nftList = await getWalletItemList()
     for (let i = 0; i < nftList.length; i++) {
@@ -447,17 +476,19 @@ function App() {
       }, i * 500)
     }
   }
-  const batchBuy = async ()=>{
-    let list= await getList()
+  const batchBuy = async () => {
+    let list = await getList()
     let itemDetail = await getItemDetail(list[0])
     takeOrder(itemDetail.item_info)
-    
-    console.log(itemDetail,'itemDetail')
+
+    console.log(itemDetail, 'itemDetail')
   }
   const [collectionList, setList] = useState([])
+
+
   useEffect(() => {
     // getList()
-    getWalletItemList()
+    // getWalletItemList()
   }, [])
 
 
@@ -477,14 +508,10 @@ function App() {
       </div>
       <button onClick={connect}>login</button>
       {/* <button onClick={list}>List</button> */}
-
       <button onClick={getList}> getList </button>
-
-      
       <button onClick={privateList}>PrivateKey List</button>
       <button onClick={batchList}>batchList</button>
       <button onClick={batchBuy}>batchBuy</button>
-
       {/* <button onClick={takeOrder}>Take Ordeer</button> */}
       {/* <button onClick={getChainId}>getChainId</button> */}
       <button onClick={getWalletItemList}>getWalletNfts</button>
