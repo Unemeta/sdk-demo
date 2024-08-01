@@ -9,7 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@unemeta/sdk": "0.0.0-dev.6",
+    "@unemeta/sdk": "file:../unemeta-sdk/unemeta-sdk-0.0.0-dev.6.tgz",
+    "axios": "^1.7.2",
+    "cookies-next": "^4.2.1",
     "ethers": "^5.7.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

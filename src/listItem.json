@@ -1,0 +1,102 @@
+{
+    "code": 200,
+    "msg": "OK",
+    "data": {
+        "item_info": {
+            "item_id": 534,
+            "ass_type": 0,
+            "token_id": "0x0000000000000000000000000000000000000000000000000000000000000142",
+            "order_id": 0,
+            "have_user_address": "0x783255a509d007D2036F11d6BA53E162bd7a67C1",
+            "logo": "https://images.unemeta.com/test/image/11155111_0x5A837952a0e32078c99A8CAbF24C78B1A8d75b78_322/default",
+            "thumbnail_logo": "https://images.unemeta.com/console/default_Image.jpg",
+            "name": "Nakamigos #322",
+            "site_link": "",
+            "description": "",
+            "collection_id": 0,
+            "collection_name": "TestErc",
+            "royalties": 0,
+            "payout_wallet_address": "",
+            "blockchain": 0,
+            "supply_num": 0,
+            "levels": null,
+            "is_vedio": false,
+            "stats": null,
+            "freeze_metadata": 0,
+            "view_num": 0,
+            "pay_currency_type": 0,
+            "version": 0
+        },
+        "order_info": {
+            "isOrderAsk": false,
+            "signer": "",
+            "collection": "",
+            "price": "",
+            "usdtPrice": 0,
+            "tokenId": "0x0000000000000000000000000000000000000000000000000000000000000142",
+            "amount": 0,
+            "strategy": "",
+            "currency": "",
+            "nonce": 0,
+            "startTime": 0,
+            "endTime": 0,
+            "minPercentageToAsk": 0,
+            "params": [],
+            "sign": "",
+            "status": false
+        },
+        "item_activity_info": [
+            {
+                "events": 1,
+                "item_id": 0,
+                "collection_address": "",
+                "token_id": "",
+                "item_title": "",
+                "item_name": "",
+                "item_image": "",
+                "ass_type": 0,
+                "price": "",
+                "type": 0,
+                "from": "0x0000000000000000000000000000000000000000",
+                "to": "0x783255a509d007D2036F11d6BA53E162bd7a67C1",
+                "tx": 1719565932,
+                "chain_id": 0
+            }
+        ],
+        "all_item_info": null,
+        "change_type": 2,
+        "discord": "",
+        "num": {
+            "total_num": 1,
+            "user_own_num": 0
+        },
+        "owmer_info": {
+            "wallet_address": "0x783255a509d007D2036F11d6BA53E162bd7a67C1",
+            "profile_image": "https://images.unemeta.com/avatar/test/175",
+            "username": "0x783255a5",
+            "owner_num": 0
+        },
+        "contract_metadata": {
+            "name": "TestErc",
+            "contract_address": "0x5A837952a0e32078c99A8CAbF24C78B1A8d75b78",
+            "symbol": "",
+            "total_supply": 458,
+            "token_type": 0,
+            "block_chain": 0,
+            "facebook_link": "",
+            "twitter_link": "",
+            "discord_link": "",
+            "telegram_link": "",
+            "website_link": "",
+            "creator_address": "",
+            "logo": "",
+            "description": "",
+            "featured_image": "",
+            "banner_image": ""
+        },
+        "offer_list": null,
+        "can_reflush": true,
+        "royalty": 4,
+        "chain_id": 11155111
+    }
+}

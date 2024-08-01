@@ -1,0 +1,22 @@
+{
+    "chain_id": 11155111,
+    "itemId": 537,
+    "walletAddress": "0x783255a509d007D2036F11d6BA53E162bd7a67C1",
+    "status": true,
+    "order": {
+        "isOrderAsk": true,
+        "amount": 1,
+        "price": "1000000000000000",
+        "startTime": 1720357101,
+        "endTime": 1722949094,
+        "tokenId": "0x000000000000000000000000000000000000000000000000000000000000014a",
+        "minPercentageToAsk": 8500,
+        "collection": "0x5A837952a0e32078c99A8CAbF24C78B1A8d75b78",
+        "currency": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
+        "strategy": "0xacC809386Fd5c99bFb07686818f29481bfdf6C76",
+        "signer": "0x783255a509d007D2036F11d6BA53E162bd7a67C1",
+        "params": [],
+        "nonce": 1696089626,
+        "sign": "0xb7067a2de9df42b82c0955646e03d71b1ca0e73f5feb9d52f0010876ad865452798bd0d4987536c774a592e950972db277808839cd05b02d29a8ff9df4e1f0df1b"
+    }
+}
