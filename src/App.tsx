@@ -11,8 +11,8 @@ import {
   generateMakerOrderTypedData,
   MakerOrderWithoutNonce,
 } from "@unemeta/sdk"
-import mockJson from './mock.json'
-import walletItemMock from './walletItemMock.json'
+// import mockJson from './mock.json'
+// import walletItemMock from './walletItemMock.json'
 import axios from 'axios'
 import { useState, useEffect } from "react";
 import {
@@ -26,17 +26,17 @@ import {
 const API_KEY = "";
 
 
-const privateKey = '7709b9ab545831759d4140db5f42b7a660e6e4d0c39b6164e8e61cdfef90d892';
+const privateKey = '';
 // const collectionAddr = "0x5A837952a0e32078c99A8CAbF24C78B1A8d75b78" // nft项目合约地址
 
 const collectionAddr = "0xfcc905fa3fc98089a46acfc930a1170c6b4dbe9a" // nft项目合约地址
 
 const wallet = new ethers.Wallet(privateKey);
 
-const ethPrice = "0.001"; // 以太坊数量，可以是字符串或数字
-const ethPriceParseWei = ethers.utils.parseEther(ethPrice);
-console.log(ethPriceParseWei, 'ethPriceParseWei')
-console.log(ethPriceParseWei.toString()); // 输出：1500000000000000000
+// const ethPrice = "0.001"; // 以太坊数量，可以是字符串或数字
+// const ethPriceParseWei = ethers.utils.parseEther(ethPrice);
+// console.log(ethPriceParseWei, 'ethPriceParseWei')
+// console.log(ethPriceParseWei.toString()); // 输出：1500000000000000000
 const provider = new ethers.providers.JsonRpcProvider('https://ethereum-sepolia.blockpi.network/v1/rpc/b996731df2ff7902f1e992312561dfa62d656880');
 const walletWithProvider = wallet.connect(provider);
 
@@ -174,12 +174,12 @@ function App() {
   // 获取该合约下的项目itemlist 用来扫挂单
   const getList = async () => {
     try {
-      let params = { "order_type": 1, "address": collectionAddr, "rare_mode": false, "chain_id": chainId, "page": 1, "page_size": 50 }
+      //order_type=3 为价格从低到高
+      let params = { "order_type": 3, "address": collectionAddr, "rare_mode": false, "chain_id": chainId, "page": 1, "page_size": 30 }
       const res = await axios.post(
         `api/backend/api/market/v1/collection/item/list`,
         params
       );
-      console.log(res.data.data.item)
       let item = res.data.data.item
       let list = item.filter((order: any) => {
         if (order.owner.toLocaleUpperCase() !== wallet.address.toLocaleUpperCase() && order.is_sell) {
@@ -187,12 +187,11 @@ function App() {
         }
       })
       console.log(list)
+      list.forEach((item: any) => {
+        item.formatPrice = ethers.utils.formatUnits(ethers.BigNumber.from(item.price), 'ether') + 'ETH'
+      })
+      setList(list)
       return list
-      // setList(res.data.data.item)
-      // let wrapActivePropList = mockJson.data.item.map(item => {
-      //   return { ...item, active: false }
-      // })
-      // setList(wrapActivePropList)
     } catch (error) {
       console.log(error)
     }
@@ -242,58 +241,8 @@ function App() {
       console.log(error)
     }
   }
-  // list & make order
-  const list = async () => {
-    // const ethersProvider = new ethers.providers.Web3Provider(window.ethereum);
-    // const signer = ethersProvider.getSigner();
-    // const signerAddress = await signer.getAddress();
-    // Fetch from the api
-    const res = await axios.get(
-      `api/backend/api/transaction/v1/transaction/getNonce?wallet_address=${wallet.address}`,
-      {
-        headers: {
-          [JWT_HEADER_KEY]: jwtHelper.getToken()
-        }
-      }
-    );
-
-    let nonce = res.data.data.nonce
-    const now = Math.floor(Date.now() / 1000);
-    const paramsValue = [] as any;
-
-    const withoutNonceOorder: MakerOrderWithoutNonce = {
-      isOrderAsk: true,
-      signer: wallet.address,
-      collection: collectionAddr, // collection contract address
-      price: ethPriceParseWei.toString(), // Warning: PRICE IS ALWAYS IN WEI
-      tokenId: "0x0000000000000000000000000000000000000000000000000000000000000142", // Token id is 0 if you use the STRATEGY_COLLECTION_SALE strategy
-      amount: 1, // Warning: amount is int
-      strategy: addresses.STRATEGY_STANDARD_SALE,
-      currency: addresses.LOCAL_WRAPPER_CURRENCY,
-      startTime: now,
-      endTime: now + 86400, // 1 day validity
-      minPercentageToAsk: 8500,
-      params: paramsValue,
-    };
-    const order = {
-      ...withoutNonceOorder,
-      nonce: nonce,
-    } as MakerOrder;
-
-    debugger
-    const signatureHash = await signMakerOrder(signer, order, domain);
-    console.log(signatureHash, 'signatureHash')
-    debugger
-    const orderRes = await axios.post("api/backend/api/transaction/v1/transaction/order/make",
-      { order: { ...order, sign: signatureHash }, chain_id: 11155111, itemId: 534, walletAddress: signerAddress, status: true }, {
-      headers: {
-        [JWT_HEADER_KEY]: jwtHelper.getToken()
-      }
-    })
-    console.log(orderRes, 'orderRes');
-  };
   // private key sign with list
-  const privateList = async (item: any) => {
+  const privateList = async (item: any, priceWei: string) => {
     // addresses.SELL_APPROVAL
     const res = await axios.get(
       `api/backend/api/transaction/v1/transaction/getNonce?wallet_address=${wallet.address}`,
@@ -311,8 +260,9 @@ function App() {
       isOrderAsk: true,
       signer: wallet.address,
       collection: collectionAddr, // collection contract address
-      price: ethPriceParseWei.toString(), // Warning: PRICE IS ALWAYS IN WEI
-      tokenId: item.token_id,
+      // price: ethPriceParseWei.toString(), // Warning: PRICE IS ALWAYS IN WEI
+      price: priceWei, // Warning: PRICE IS ALWAYS IN WEI
+      tokenId: item.token_id, // 0x16进制
       // tokenId: "0x0000000000000000000000000000000000000000000000000000000000000142", // Token id is 0 if you use the STRATEGY_COLLECTION_SALE strategy
       amount: 1, // Warning: amount is int
       strategy: addresses.STRATEGY_STANDARD_SALE,
@@ -362,7 +312,7 @@ function App() {
   };
 
   // take order
-  const takeOrder = async (item) => {
+  const takeOrder = async (item: any) => {
     // You should get `makerOrderWithSignature` data from unemeta open api
     // @see https://unemetatest.readme.io/reference/getting-started-with-your-api
 
@@ -465,56 +415,93 @@ function App() {
     console.log('Transaction was mined in block:', receipt.blockNumber);
   };
 
+  // 延迟函数
   const sleep = (time: number) =>
     new Promise((resolve) => setTimeout(resolve, time));
 
+  // 设置某个区间的随机值
+  /**
+   * 
+   * @param m 最小值
+   * @param n 最大值
+   * @param leftLength 格式化长度
+   * @returns 
+   */
+  const getRandom = (m: number, n: number, leftLength: number) => {
+    let res = Math.random() * (n - m) + m
+    return res.toFixed(leftLength)
+  }
+
+  // 批量挂单
   const batchList = async () => {
     let nftList = await getWalletItemList()
     for (let i = 0; i < nftList.length; i++) {
+      let randomPrice = getRandom(min, max, 2)
+      console.log(randomPrice)
+      const ethPriceParseWei = ethers.utils.parseEther(randomPrice).toString();
       setTimeout(() => {
-        privateList(nftList[i])
-      }, i * 500)
+        privateList(nftList[i], ethPriceParseWei)
+      }, i * 800)
     }
   }
+  // 批量购买
   const batchBuy = async () => {
     let list = await getList()
-    let itemDetail = await getItemDetail(list[0])
-    takeOrder(itemDetail.item_info)
-
-    console.log(itemDetail, 'itemDetail')
+    let maxAmount = 5
+    if (list.length > maxAmount) {
+      list = list.slice(0, maxAmount)
+    }
+    for (let i = 0; i < list.length; i++) {
+      setTimeout(async () => {
+        let itemDetail = await getItemDetail(list[i])
+        console.log(itemDetail, 'itemDetail')
+        takeOrder(itemDetail.item_info)
+      }, 2000 * i)
+    }
   }
   const [collectionList, setList] = useState([])
-
+  const [min, setMin] = useState(0.1)
+  const [max, setMax] = useState(0.3)
 
   useEffect(() => {
-    // getList()
+    getList()
     // getWalletItemList()
   }, [])
 
 
   return (
     <div className="wrapper">
-      <div>
-        {collectionList.map((item) => {
+      <button onClick={connect}>登陆获取cookie</button>
+
+      <h2>买入</h2>
+      <button onClick={getList}> 获取最低价格列表(不包含自己) </button>
+      <div style={{ display: 'flex' }}>
+        {collectionList.map((item: any) => {
           return (
-            <div key={item.name} onClick={() => { getItemDetail(item) }} style={{ 'border': item.active ? '1px solid black' : 'none' }}>
+            <div key={item.name} onClick={() => { getItemDetail(item) }} style={{ 'marginLeft': '20px' }}>
               <img src={item.logo} width={80} height={80}></img>
               <div>{item.name}</div>
-              {/* <span>tokenId:{item.token_id}</span> */}
-              <div>Item:{item.item_id}</div>
+              <div>Item:{item.formatPrice}</div>
             </div>
           )
         })}
       </div>
-      <button onClick={connect}>login</button>
-      {/* <button onClick={list}>List</button> */}
-      <button onClick={getList}> getList </button>
-      <button onClick={privateList}>PrivateKey List</button>
-      <button onClick={batchList}>batchList</button>
-      <button onClick={batchBuy}>batchBuy</button>
-      {/* <button onClick={takeOrder}>Take Ordeer</button> */}
-      {/* <button onClick={getChainId}>getChainId</button> */}
-      <button onClick={getWalletItemList}>getWalletNfts</button>
+      <button onClick={batchBuy}>批量购买</button>
+      <h2>------------</h2>
+      <h2>挂单</h2>
+      <button onClick={getWalletItemList}>获取该合约未被挂单的nft</button>
+      <div>
+        <h2>在区间内使用随机值挂单</h2>
+        <div>
+          <span>min:</span>
+          <input onChange={(e) => { setMin(Number(e.target.value)) }} type="number" step={0.1}></input>
+        </div>
+        <div>
+          <span>max:</span>
+          <input onChange={(e) => { setMax(Number(e.target.value)) }} type="number" step={0.1}></input>
+        </div>
+      </div>
+      <button onClick={batchList}>批量挂单</button>
 
     </div >
   );
